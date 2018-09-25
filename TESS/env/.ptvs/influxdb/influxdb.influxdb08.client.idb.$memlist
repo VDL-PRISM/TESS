@@ -1,0 +1,11 @@
+urlparse
+requests
+socket
+chunked_json
+json
+warnings
+InfluxDBClientError
+InfluxDBClient
+xrange
+version_info
+session

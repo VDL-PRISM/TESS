@@ -1,0 +1,13 @@
+emit_deprecation_warning
+Any
+Dict
+setup
+make_filename
+warnings
+Epub2Builder
+Sphinx
+DOCTYPE
+RemovedInSphinx17Warning
+path
+_epub_base
+package_dir

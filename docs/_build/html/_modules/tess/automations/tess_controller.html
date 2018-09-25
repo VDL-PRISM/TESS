@@ -1,0 +1,243 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.automations.tess_controller &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.automations.tess_controller</h1><div class="highlight"><pre>
+<span></span><span class="c1">#import click</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">schedule</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">logging.config</span>
+
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">tess.automations</span> <span class="k">import</span> <span class="n">TESSAutomation</span>
+<span class="kn">from</span> <span class="nn">tess.common.rule</span> <span class="k">import</span> <span class="n">Rule</span>
+<span class="kn">from</span> <span class="nn">tess.helpers</span> <span class="k">import</span> <span class="n">helper</span>
+<span class="kn">from</span> <span class="nn">tess.common.state</span> <span class="k">import</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">tess.common.notification</span> <span class="k">import</span> <span class="n">Notification</span>
+
+<span class="n">NETWORK</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TESSController"><a class="viewcode-back" href="../../../api/tess.automations.html#tess.automations.tess_controller.TESSController">[docs]</a><span class="k">class</span> <span class="nc">TESSController</span><span class="p">(</span><span class="n">TESSAutomation</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Baseclass for all TESS Controllers.  </span>
+<span class="sd">    Control and automate the start thermostat for the fan operation.</span>
+
+<span class="sd">    Must be run as a service class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule_config_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a monitor object.&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">rule_config_file</span><span class="p">)</span>
+        
+        <span class="c1"># Create policy based rules from rule configuration file.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="n">Rule</span><span class="o">.</span><span class="n">create_rules</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;rules&#39;</span><span class="p">])</span>
+
+
+        <span class="c1"># Create conditions that are to be scheduled for random experiments </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">Condition</span><span class="o">.</span><span class="n">create_conditions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;conditions&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Create conditions that are to be scheduled for random experiments </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">create_states</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;states&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;actuator_handler&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_config_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;controller_config_file&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Load actuator module and class information from the rule.yaml file </span>
+        <span class="c1"># to construct an actuator object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_handler</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">class_from_name</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;modulename&#39;</span><span class="p">],</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;classname&#39;</span><span class="p">],</span> 
+            <span class="bp">self</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Create a notification engine that notifies who/whatever want to hear</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notify</span> <span class="o">=</span> <span class="n">Notification</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actuator_handler</span><span class="p">)</span>
+
+
+        <span class="c1"># Create an analysis handler for calculating stats by loading module and class dynamically</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_handler</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">class_from_name</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis_handler&#39;</span><span class="p">][</span><span class="s1">&#39;modulename&#39;</span><span class="p">],</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis_handler&#39;</span><span class="p">][</span><span class="s1">&#39;classname&#39;</span><span class="p">],</span> 
+            <span class="bp">self</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Tables are dynamically generated if they don&#39;t exist in the database.</span>
+        <span class="c1"># This allows to run different types of experiments while not overwriting other data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis_handler&#39;</span><span class="p">][</span><span class="s1">&#39;analysis_table&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis_handler&#39;</span><span class="p">][</span><span class="s1">&#39;data_table&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis_handler&#39;</span><span class="p">][</span><span class="s1">&#39;experiment_table&#39;</span><span class="p">]</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool_executor</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+
+<div class="viewcode-block" id="TESSController.start"><a class="viewcode-back" href="../../../api/tess.automations.html#tess.automations.tess_controller.TESSController.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        3. Choose a random condition and submit it to executor to run it now.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">I&#39;m working ... at </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="c1"># Choose a randow condition now </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is selected randomly ... at </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)))</span>
+
+        <span class="c1"># Check to see if the current condition is continusely running </span>
+        <span class="n">is_running</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="o">.</span><span class="n">is_running</span><span class="p">()</span>
+
+        <span class="c1"># If the selected condition is not running, then submit the condition now </span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">is_running</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not running yet and about to submit ... at </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)))</span>
+
+            <span class="n">thread1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool_executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{0}</span><span class="s2"> was submitted and about to sleep ... at </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+
+            <span class="c1"># Check again to see if the submitted condition is running now.</span>
+            <span class="n">is_running</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span><span class="o">.</span><span class="n">is_running</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TESSController.run"><a class="viewcode-back" href="../../../api/tess.automations.html#tess.automations.tess_controller.TESSController.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        1. Schedule conditions in random.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">stop_running</span><span class="p">(</span><span class="n">sig_num</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Shutting down the Actuator controller&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">RUNNING</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="n">stop_running</span><span class="p">)</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">stop_running</span><span class="p">)</span>        
+
+
+        <span class="c1"># Initialize the experiment states</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running the TESS Actuator controller in schedule ...&quot;</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        2. Initialize the conditions and fan states.</span>
+<span class="sd">        SmartAir, SmartLight, SmartSleep have their own states. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create a random condition executor process, </span>
+        <span class="c1">#Create how many workers we will run for this random process</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_condition</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread_pool_executor</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+
+        <span class="c1">############# Run a random condition now? Then uncomment the following ########### </span>
+        <span class="c1"># The scheduler will schedule a condition for the future, but won&#39;t run now. So, the statement below will pick a random condition and run it now</span>
+        <span class="c1"># If a condition needs to be schedule at the next time, comment the following code</span>
+        <span class="c1">#LOGGER.info(&quot;Run a random condition now...&quot;)</span>
+        <span class="c1">#self.start()</span>
+        <span class="c1">########################</span>
+
+
+        <span class="c1"># Schedule to run a random condition every ? - Grab the schedule statement and exec from the config file</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Schedule a random condition now ...&quot;</span><span class="p">)</span>
+        <span class="n">schedule_handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;schedule_handler&#39;</span><span class="p">][</span><span class="s1">&#39;statement&#39;</span><span class="p">]</span>
+        <span class="n">exec</span><span class="p">(</span><span class="n">schedule_handler</span><span class="p">)</span>
+
+
+        <span class="c1"># Run while the experiment is configured</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">:</span>
+            <span class="n">schedule</span><span class="o">.</span><span class="n">run_pending</span><span class="p">()</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../automations.html">tess.automations</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

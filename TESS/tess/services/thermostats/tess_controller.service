@@ -1,0 +1,13 @@
+[Unit]
+Description=TESS Controller 
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/srv/pi/TESS
+ExecStartPre=source /srv/pi/TESS/bin/activate
+ExecStart=/srv/pi/TESS/bin/python main.py controller actuator_controller.conf tess/rules/thermostat/ecobee/configuration.yaml tess/automations/logging_controller.yaml > tess-controller.log 2>&1
+
+[Install]
+WantedBy=multi-user.target

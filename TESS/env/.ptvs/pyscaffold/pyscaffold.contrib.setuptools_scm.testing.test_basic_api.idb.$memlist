@@ -1,0 +1,17 @@
+test_do
+setuptools_scm
+test_root_parameter_pass_by
+do
+os
+data_from_mime
+test_root_relative_to
+test_parse_plain
+py
+test_data_from_mime
+dump_version
+test_dump_version
+test_root_parameter_creation
+test_version_from_pkginfo
+pytest
+test_pretended
+assert_root

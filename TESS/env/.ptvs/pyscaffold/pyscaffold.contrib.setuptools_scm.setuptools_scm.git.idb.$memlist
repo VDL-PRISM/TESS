@@ -1,0 +1,11 @@
+abspath
+meta
+DEFAULT_DESCRIBE
+realpath
+do_ex
+GitWorkdir
+trace
+_normalized
+parse
+normcase
+FILES_COMMAND

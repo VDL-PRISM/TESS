@@ -1,0 +1,409 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.actuators.thermostats.ecobee.pyecobee &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.actuators.thermostats.ecobee.pyecobee</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; Python Code for Communication with the Ecobee Thermostat &#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+<div class="viewcode-block" id="config_from_file"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.config_from_file">[docs]</a><span class="k">def</span> <span class="nf">config_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Small configuration file management function&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+        <span class="c1"># We&#39;re writing configuration</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdesc</span><span class="p">:</span>
+                <span class="n">fdesc</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># We&#39;re reading config</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdesc</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fdesc</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="Ecobee"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee">[docs]</a><span class="k">class</span> <span class="nc">Ecobee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Class for storing Ecobee Thermostats and Sensors &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="p">,</span> <span class="n">ecobee_info</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">config_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authenticated</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">appname</span> <span class="o">=</span> <span class="n">appname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ecobee_info</span> <span class="o">=</span> <span class="n">ecobee_info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>
+
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_based_config</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">config_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error. No API Key was supplied.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+                <span class="n">jsonconfig</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;API_KEY&quot;</span><span class="p">:</span> <span class="n">api_key</span><span class="p">}</span>
+                <span class="n">config_filename</span> <span class="o">=</span> <span class="s1">&#39;ecobee.conf&#39;</span>
+                <span class="n">config_from_file</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">jsonconfig</span><span class="p">)</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">config_from_file</span><span class="p">(</span><span class="n">config_filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_based_config</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_filename</span> <span class="o">=</span> <span class="n">config_filename</span>
+
+        <span class="k">if</span> <span class="s1">&#39;ACCESS_TOKEN&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;ACCESS_TOKEN&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="s1">&#39;AUTHORIZATION_CODE&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authorization_code</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;AUTHORIZATION_CODE&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authorization_code</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="s1">&#39;REFRESH_TOKEN&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;REFRESH_TOKEN&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_pin</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Ecobee.request_pin"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.request_pin">[docs]</a>    <span class="k">def</span> <span class="nf">request_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Method to request a PIN from ecobee for authorization &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/authorize&#39;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;response_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ecobeePin&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span> <span class="s1">&#39;scope&#39;</span><span class="p">:</span> <span class="s1">&#39;smartWrite&#39;</span><span class="p">}</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authorization_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;ecobeePin&#39;</span><span class="p">]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Please authorize your ecobee developer app with PIN code - &#39;</span>
+              <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Goto https://www.ecobee.com/consumerportal&#39;</span>
+              <span class="s1">&#39;/index.html, click</span><span class="se">\n</span><span class="s1">My Apps, Add application, Enter Pin&#39;</span>
+              <span class="s1">&#39; and click Authorize.</span><span class="se">\n</span><span class="s1">After authorizing, call request_&#39;</span>
+              <span class="s1">&#39;tokens() method.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># send a message to the user </span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;home_id&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">ecobee_info</span><span class="p">[</span><span class="s1">&#39;home_id&#39;</span><span class="p">],</span> <span class="s1">&#39;appname&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">appname</span><span class="p">}</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">record_event_tags</span><span class="p">(</span><span class="s2">&quot;ecobee_configuration&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An exception occurred:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># give enough time to enter the pin for the service process</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Ecobee.request_tokens"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.request_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">request_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Method to request API tokens from ecobee &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/token&#39;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ecobeePin&#39;</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">authorization_code</span><span class="p">,</span>
+                  <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">}</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;access_token&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_tokens_to_file</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Error while requesting tokens from ecobee.com.&#39;</span>
+                  <span class="s1">&#39; Status code: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">status_code</span><span class="p">))</span>
+            <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Ecobee.refresh_tokens"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.refresh_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; refresh tokens fail sometimes although it shouldn&#39;t fail </span>
+<span class="sd">        when the api_key and refresh_tokens are provided.</span>
+<span class="sd">        Let&#39;s try at max 5 times with sleep 2 seconds</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39; Method to refresh API tokens from ecobee &#39;&#39;&#39;</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/token&#39;</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;refresh_token&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;refresh_token&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span><span class="p">,</span>
+                      <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">}</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;access_token&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_tokens_to_file</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sleeptime</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;TOKEN REFRESH Failed:</span><span class="si">{}</span><span class="s2">, sleep seconds:</span><span class="si">{}</span><span class="s2">, error:</span><span class="si">{}</span><span class="s2">, error description:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sleeptime</span><span class="p">,</span><span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;error&#39;</span><span class="p">],</span><span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;error_description&#39;</span><span class="p">]))</span>
+
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_pin</span><span class="p">()</span></div>
+
+
+    <span class="c1">#def refresh_tokens(self):</span>
+    <span class="c1">#    &#39;&#39;&#39; Method to refresh API tokens from ecobee &#39;&#39;&#39;</span>
+    <span class="c1">#    url = &#39;https://api.ecobee.com/token&#39;</span>
+    <span class="c1">#    params = {&#39;grant_type&#39;: &#39;refresh_token&#39;,</span>
+    <span class="c1">#              &#39;refresh_token&#39;: self.refresh_token,</span>
+    <span class="c1">#              &#39;client_id&#39;: self.api_key}</span>
+    <span class="c1">#    request = requests.post(url, params=params)</span>
+    <span class="c1">#    if request.status_code == requests.codes.ok:</span>
+    <span class="c1">#        self.access_token = request.json()[&#39;access_token&#39;]</span>
+    <span class="c1">#        self.refresh_token = request.json()[&#39;refresh_token&#39;]</span>
+    <span class="c1">#        self.write_tokens_to_file()</span>
+    <span class="c1">#        return True</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        self.request_pin()</span>
+
+<div class="viewcode-block" id="Ecobee.get_thermostats"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.get_thermostats">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermostats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set self.thermostats to a json list of thermostats from ecobee &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;json&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;{&quot;selection&quot;:{&quot;selectionType&quot;:&quot;registered&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeRuntime&quot;:&quot;true&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeSensors&quot;:&quot;true&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeProgram&quot;:&quot;true&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeEquipmentStatus&quot;:&quot;true&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeEvents&quot;:&quot;true&quot;,&#39;</span>
+                            <span class="s1">&#39;&quot;includeSettings&quot;:&quot;true&quot;}}&#39;</span><span class="p">)}</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticated</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;thermostatList&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticated</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to get &quot;</span>
+                  <span class="s2">&quot;thermostat data.  Refreshing tokens and trying again.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_thermostats</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Ecobee.get_thermostat"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.get_thermostat">[docs]</a>    <span class="k">def</span> <span class="nf">get_thermostat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Return a single thermostat based on index &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Ecobee.get_remote_sensors"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.get_remote_sensors">[docs]</a>    <span class="k">def</span> <span class="nf">get_remote_sensors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Return remote sensors based on index &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;remoteSensors&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Ecobee.set_hvac_mode"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.set_hvac_mode">[docs]</a>    <span class="k">def</span> <span class="nf">set_hvac_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">hvac_mode</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; possible hvac modes are auto, auxHeatOnly, cool, heat, off &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;selection&quot;:{&quot;selectionType&quot;:&quot;thermostats&quot;,&quot;selectionMatch&quot;:&#39;</span>
+                <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span>
+                <span class="s1">&#39;&quot;},&quot;thermostat&quot;:{&quot;settings&quot;:{&quot;hvacMode&quot;:&quot;&#39;</span> <span class="o">+</span> <span class="n">hvac_mode</span> <span class="o">+</span>
+                <span class="s1">&#39;&quot;}}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to set&quot;</span>
+                  <span class="s2">&quot; HVAC mode.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.set_fan_min_on_time"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.set_fan_min_on_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_fan_min_on_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">fan_min_on_time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; The minimum time, in minutes, to run the fan each hour. Value from 1 to 60 &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;selection&quot;:{&quot;selectionType&quot;:&quot;thermostats&quot;,&quot;selectionMatch&quot;:&#39;</span>
+                <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span>
+                <span class="s1">&#39;&quot;},&quot;thermostat&quot;:{&quot;settings&quot;:{&quot;fanMinOnTime&quot;:&quot;&#39;</span> <span class="o">+</span> <span class="n">fan_min_on_time</span> <span class="o">+</span>
+                <span class="s1">&#39;&quot;}}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to set&quot;</span>
+                  <span class="s2">&quot; fan minimum on time.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.set_hold_temp"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.set_hold_temp">[docs]</a>    <span class="k">def</span> <span class="nf">set_hold_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">cool_temp</span><span class="p">,</span> <span class="n">heat_temp</span><span class="p">,</span>
+                      <span class="n">hold_type</span><span class="o">=</span><span class="s2">&quot;nextTransition&quot;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set a hold &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;functions&quot;:[{&quot;type&quot;:&quot;setHold&quot;,&quot;params&quot;:{&quot;holdType&quot;:&quot;&#39;</span>
+                <span class="o">+</span> <span class="n">hold_type</span> <span class="o">+</span> <span class="s1">&#39;&quot;,&quot;coolHoldTemp&quot;:&quot;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cool_temp</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span>
+                <span class="s1">&#39;&quot;,&quot;heatHoldTemp&quot;:&quot;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">heat_temp</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}],&#39;</span>
+                <span class="s1">&#39;&quot;selection&quot;:{&quot;selectionType&quot;:&quot;thermostats&quot;,&quot;selectionMatch&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to set&quot;</span>
+                  <span class="s2">&quot; hold temp.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.set_climate_hold"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.set_climate_hold">[docs]</a>    <span class="k">def</span> <span class="nf">set_climate_hold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">climate</span><span class="p">,</span> <span class="n">hold_type</span><span class="o">=</span><span class="s2">&quot;nextTransition&quot;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set a climate hold - ie away, home, sleep &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;functions&quot;:[{&quot;type&quot;:&quot;setHold&quot;,&quot;params&quot;:{&quot;holdType&quot;:&quot;&#39;</span>
+                <span class="o">+</span> <span class="n">hold_type</span> <span class="o">+</span> <span class="s1">&#39;&quot;,&quot;holdClimateRef&quot;:&quot;&#39;</span> <span class="o">+</span> <span class="n">climate</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}],&#39;</span>
+                <span class="s1">&#39;&quot;selection&quot;:{&quot;selectionType&quot;:&quot;thermostats&quot;,&quot;selectionMatch&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to set&quot;</span>
+                  <span class="s2">&quot; climate hold.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.resume_program"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.resume_program">[docs]</a>    <span class="k">def</span> <span class="nf">resume_program</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">resume_all</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Resume currently scheduled program &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;functions&quot;:[{&quot;type&quot;:&quot;resumeProgram&quot;,&quot;params&quot;:{&quot;resumeAll&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;&#39;</span> <span class="o">+</span> <span class="n">resume_all</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}],&quot;selection&quot;:{&quot;selectionType&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;thermostats&quot;,&quot;selectionMatch&quot;:&quot;&#39;</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to resume&quot;</span>
+                  <span class="s2">&quot; program.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.send_message"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.send_message">[docs]</a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Hello from python-ecobee!&quot;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Send a message to the thermostat &#39;&#39;&#39;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.ecobee.com/1/thermostat&#39;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json;charset=UTF-8&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span><span class="p">}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">}</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{&quot;functions&quot;:[{&quot;type&quot;:&quot;sendMessage&quot;,&quot;params&quot;:{&quot;text&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;&#39;</span> <span class="o">+</span> <span class="n">message</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">500</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}],&quot;selection&quot;:{&quot;selectionType&quot;&#39;</span>
+                <span class="s1">&#39;:&quot;thermostats&quot;,&quot;selectionMatch&quot;:&quot;&#39;</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermostats</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;}}&#39;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Error connecting to Ecobee while attempting to send&quot;</span>
+                  <span class="s2">&quot; message.  Refreshing tokens...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_tokens</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Ecobee.write_tokens_to_file"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.write_tokens_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_tokens_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Write api tokens to a file &#39;&#39;&#39;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;ACCESS_TOKEN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;REFRESH_TOKEN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;AUTHORIZATION_CODE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">authorization_code</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_based_config</span><span class="p">:</span>
+            <span class="n">config_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span></div>
+
+<div class="viewcode-block" id="Ecobee.update"><a class="viewcode-back" href="../../../../../api/tess.actuators.thermostats.ecobee.pyecobee.html#tess.actuators.thermostats.ecobee.pyecobee.Ecobee.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get new thermostat data from ecobee &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_thermostats</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  <li><a href="../../../actuators.html">tess.actuators</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

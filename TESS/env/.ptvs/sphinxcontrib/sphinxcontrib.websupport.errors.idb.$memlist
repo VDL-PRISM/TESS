@@ -1,0 +1,4 @@
+NullSearchException
+CommentNotAllowedError
+DocumentNotFoundError
+UserNotAuthorizedError

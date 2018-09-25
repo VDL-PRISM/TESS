@@ -1,0 +1,306 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.actuators.thermostats.ecobee_actuator &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.actuators.thermostats.ecobee_actuator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">tess.actuators</span> <span class="k">import</span> <span class="n">BaseActuator</span>
+<span class="kn">from</span> <span class="nn">tess.actuators.thermostats.ecobee.prisms_ecobee</span> <span class="k">import</span> <span class="n">PrismsEcobee</span>
+<span class="kn">from</span> <span class="nn">tess.common.shared</span> <span class="k">import</span> <span class="n">throttle</span>
+
+<span class="kn">from</span> <span class="nn">tess.common.const</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">tess.common.shared</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="EcobeeActuator"><a class="viewcode-back" href="../../../../api/tess.actuators.thermostats.html#tess.actuators.thermostats.ecobee_actuator.EcobeeActuator">[docs]</a><span class="k">class</span> <span class="nc">EcobeeActuator</span><span class="p">(</span><span class="n">BaseActuator</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">automation</span><span class="p">):</span>
+        
+        <span class="c1">#self.thermostats = actuator.thermostats</span>
+        <span class="c1">#self.options = {&#39;fan_on&#39;: self._fan_on,</span>
+        <span class="c1">#                &#39;fan_off&#39;: self._fan_off,</span>
+        <span class="c1">#                &#39;cool_temp&#39;: self._cool_temp,</span>
+        <span class="c1">#                &#39;heat_temp&#39;: self._heat_temp}</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">EcobeeActuator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">automation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span> <span class="o">=</span> <span class="n">PrismsEcobee</span><span class="p">(</span><span class="s1">&#39;Automation&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">actuator_config_file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">authenticated</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Please enter the pin entry and will start in 2 minutes automatically&quot;</span><span class="p">)</span>
+            <span class="c1">#isReady = input(&quot;Click Enter after pin entry&quot;)</span>
+            <span class="c1">#time.sleep(120)</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">request_tokens</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fan_mode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hvac_mode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hold_action</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_equipment_status</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_occupancy</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fan_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fan_mode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hvac_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvac_mode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hold_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hold_action</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">equipment_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equipment_status</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_occupancy</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">desired_heat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">desired_cool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span>
+
+
+<div class="viewcode-block" id="EcobeeActuator.change_settings"><a class="viewcode-back" href="../../../../api/tess.actuators.thermostats.html#tess.actuators.thermostats.ecobee_actuator.EcobeeActuator.change_settings">[docs]</a>    <span class="k">def</span> <span class="nf">change_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">:</span>
+            <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="c1"># In order to off fan, the ecobee only allows the system to be off and then fan off.</span>
+            <span class="c1"># Instead of just offing system in case the weather is cold and users want heat on, </span>
+            <span class="c1"># we shouldn&#39;t turn off the system.</span>
+            <span class="c1"># Just resume the system</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">turn_fan_off</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span><span class="p">,</span>
+                                     <span class="s1">&#39;indefinite&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="sd">&#39;&#39;&#39; possible hvac modes are auto, auxHeatOnly, cool, heat, off &#39;&#39;&#39;</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_hvac_mode</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvac_mode</span><span class="p">)</span>
+            <span class="c1"># put the original thermostate mode back</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">resume_program</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;normal_with_datetime&#39;</span><span class="p">:</span>
+            <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="c1"># In order to off fan, the ecobee only allows the system to be off and then fan off.</span>
+            <span class="c1"># Instead of just offing system in case the weather is cold and users want heat on, </span>
+            <span class="c1"># we shouldn&#39;t turn off the system.</span>
+            <span class="c1"># Just resume the system</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">turn_fan_off</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span><span class="p">,</span>
+                                     <span class="s1">&#39;dateTime&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="sd">&#39;&#39;&#39; possible hvac modes are auto, auxHeatOnly, cool, heat, off &#39;&#39;&#39;</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_hvac_mode</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvac_mode</span><span class="p">)</span>
+            <span class="c1"># put the original thermostate mode back</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">resume_program</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+
+        <span class="c1"># fan on</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">:</span>
+            <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">turn_fan_on</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span><span class="p">,</span>
+                                     <span class="s1">&#39;indefinite&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;on_with_datetime&#39;</span><span class="p">:</span>
+            <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">turn_fan_on</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span><span class="p">,</span>
+                                     <span class="s1">&#39;dateTime&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># runtime</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;runtime&#39;</span><span class="p">:</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">resume_program</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># rule</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;rule&#39;</span><span class="p">:</span>
+            <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+        <span class="c1"># resume</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;resume&#39;</span><span class="p">:</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">set_fan_min_on_time</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">resume_program</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="n">request</span></div>
+
+
+
+    <span class="nd">@throttle</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="n">MIN_TIME_BETWEEN_UPDATES</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_thermostats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_thermostats</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">StateUpdateException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EcobeeActuator.update_settings"><a class="viewcode-back" href="../../../../api/tess.actuators.thermostats.html#tess.actuators.thermostats.ecobee_actuator.EcobeeActuator.update_settings">[docs]</a>    <span class="nd">@throttle</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="n">MIN_TIME_BETWEEN_UPDATES</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">update_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updating the current state variables&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_thermostats</span><span class="p">()</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hvac_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_hvac_mode</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fan_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_desired_fanmode</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hold_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_hold_action</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_equipment_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_thermostat_data</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="s1">&#39;equipmentStatus&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_occupancy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecobee</span><span class="o">.</span><span class="n">get_desired_cool_heat</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_desired_cool</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_desired_heat</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+        
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done with updating&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An exception ocurred in </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="EcobeeActuator.read_settings"><a class="viewcode-back" href="../../../../api/tess.actuators.thermostats.html#tess.actuators.thermostats.ecobee_actuator.EcobeeActuator.read_settings">[docs]</a>    <span class="k">def</span> <span class="nf">read_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+        <span class="c1"># hvac mode</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;havc_mode&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hvac_mode</span>
+
+        <span class="c1"># desired fan mode</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;desired_fan_mode&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fan_mode</span>
+        
+        <span class="c1"># hold action</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;hold_action&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hold_action</span>
+
+        <span class="c1"># equipment status</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;equipment_status&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">equipment_status</span>
+
+        <span class="c1"># occupancy</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;occupancy&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span>
+
+        <span class="c1"># desired cool</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;desired_cool&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">desired_cool</span>
+
+        <span class="c1"># desired heat</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;desired_heat&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">desired_heat</span></div>
+        
+
+<div class="viewcode-block" id="EcobeeActuator.get_actuator_summary_data"><a class="viewcode-back" href="../../../../api/tess.actuators.thermostats.html#tess.actuators.thermostats.ecobee_actuator.EcobeeActuator.get_actuator_summary_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_actuator_summary_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">class_name</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="s1">&#39;home_id:</span><span class="si">{}</span><span class="s1">, class:</span><span class="si">{}</span><span class="s1">, ecobee_id: </span><span class="si">{}</span><span class="s1">, hvac_mode: </span><span class="si">{}</span><span class="s1">, &#39;</span> \
+                <span class="s1">&#39;fan: </span><span class="si">{}</span><span class="s1">, hold_action: </span><span class="si">{}</span><span class="s1">, desired_cool: </span><span class="si">{}</span><span class="s1">, &#39;</span> \
+                <span class="s1">&#39;desired_heat: </span><span class="si">{}</span><span class="s1">, equipmentStatus: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;home_id&#39;</span><span class="p">],</span> 
+                <span class="n">class_name</span><span class="p">,</span> 
+                <span class="nb">id</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">hvac_mode</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">fan_mode</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">hold_action</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">desired_cool</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">desired_heat</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">equipment_status</span>
+                <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../actuators.html">tess.actuators</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

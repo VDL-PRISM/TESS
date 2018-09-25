@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.analysis.analysis &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.analysis.analysis</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">tess.analysis</span> <span class="k">import</span> <span class="n">BaseAnalysis</span>
+<span class="kn">from</span> <span class="nn">tess.common.shared</span> <span class="k">import</span> <span class="n">DatabaseException</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Analysis"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis">[docs]</a><span class="k">class</span> <span class="nc">Analysis</span><span class="p">(</span><span class="n">BaseAnalysis</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">automation</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">automation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">home_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;home_id&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;actuator_id&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Analysis.add_new_datapoint"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis.add_new_datapoint">[docs]</a>    <span class="k">def</span> <span class="nf">add_new_datapoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># avg day of pm 2.5</span>
+        <span class="c1"># sleep quality</span>
+        <span class="c1"># total electric use over experimental period</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Analysis.calc_stats"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis.calc_stats">[docs]</a>    <span class="k">def</span> <span class="nf">calc_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="c1"># code to evaluate change...</span>
+        <span class="c1"># Calculate an average value of PM2.5 for everyday and save it to analysis table</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_latest</span><span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+        <span class="c1"># return p-value</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Analysis.db_record_home_data"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis.db_record_home_data">[docs]</a>    <span class="k">def</span> <span class="nf">db_record_home_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">home_id</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">record_event</span><span class="p">(</span><span class="n">home_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                                    
+        <span class="k">except</span> <span class="n">DatabaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analysis.db_record_event_tags_fields"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis.db_record_event_tags_fields">[docs]</a>    <span class="k">def</span> <span class="nf">db_record_event_tags_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurement</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">record_event_tags</span><span class="p">(</span><span class="n">measurement</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+                                    
+        <span class="k">except</span> <span class="n">DatabaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Analysis.db_record_rule_data"><a class="viewcode-back" href="../../../api/tess.analysis.html#tess.analysis.analysis.Analysis.db_record_rule_data">[docs]</a>    <span class="k">def</span> <span class="nf">db_record_rule_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">automation</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">record_event</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">home_id</span><span class="p">,</span> <span class="s1">&#39;home_id: </span><span class="si">{}</span><span class="s1">, rulename: </span><span class="si">{}</span><span class="s1">, ecobee_id: </span><span class="si">{}</span><span class="s1">, fan: </span><span class="si">{}</span><span class="s1">, duration: </span><span class="si">{}</span><span class="s1"> m, above: </span><span class="si">{}</span><span class="s1">, below: </span><span class="si">{}</span><span class="s1">, current: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">home_id</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">ecobee_id</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">actuator_mode</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">duration_minute</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">above</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">below</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="n">DatabaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div></div>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../analysis.html">tess.analysis</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

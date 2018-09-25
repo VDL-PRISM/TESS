@@ -1,0 +1,40 @@
+version: 1
+
+formatters:
+  simple:
+#    format: '%(asctime)s:%(threadName)s:%(levelname)s:%(name)s: [%(module)s %(funcName)s %(lineno)d] - %(message)s\n'
+    format: '%(asctime)s %(filename)-18s %(levelname)-8s: %(message)s'
+  long:
+    format: '%(asctime)s %(filename)-18s %(levelname)-8s: [%(module)s %(funcName)s %(lineno)d] - %(message)s'
+
+
+filters: []
+
+handlers:
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    filename: controller.log
+    formatter: long
+    maxBytes: 10485760
+    backupCount: 3
+
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+
+loggers:
+  clogger:
+    level: DEBUG
+    handlers: [console]
+  flogger:
+    level: WARNING
+    handlers: [file]
+
+root:
+  level: DEBUG
+  handlers: [console, file]
+
+# disable_existing_loggers: true

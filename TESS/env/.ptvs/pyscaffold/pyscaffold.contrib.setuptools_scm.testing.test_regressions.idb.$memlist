@@ -1,0 +1,7 @@
+do
+test_use_scm_version_callable
+do_ex
+parse
+test_pkginfo_noscmroot
+pytest
+sys

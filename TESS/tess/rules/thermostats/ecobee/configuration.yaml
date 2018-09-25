@@ -1,0 +1,227 @@
+## Smart device web API information
+actuator_handler:
+  modulename: 'tess.actuators.thermostats.ecobee_actuator'
+  classname: 'EcobeeActuator'
+  controller_config_file: 'ecobee_controller.conf'
+  monitor_config_file: 'ecobee_monitor.conf'
+  actuator_id: 0
+  home_id: prisms-gateway
+  actuator_min_on_minutes_per_hour: [20, 40]
+
+  url_pin: https://api.ecobee.com/authorize
+  url_tokens: https://api.ecobee.com/token
+  url_thermostat: https://api.ecobee.com/1/thermostat
+
+
+# List sensors here and they will be automatically filled into Rules queries
+# Use dictionary unpacking in the Rules query
+sensors: &sensorlist
+  - sensor1: monitor12
+  - sensor2: monitor13
+  - sensor3: monitorA103
+
+#analysis_handler:
+#  modulename: 'tess.analysis.analysis'
+#  classname: 'Analysis'
+#  analysis_table: 'tess_fan_analysis'
+#  data_table: 'tess_fan_data'
+#  experiment_table: 'test_fan_experiments'
+#
+
+analysis_handler:
+  modulename: 'tess.analysis.analysis'
+  classname: 'Analysis'
+  analysis_table: 'ecobee_fan_analysis'
+  data_table: 'ecobee_fan_data'
+  experiment_table: 'ecobee_fan_experiments'
+
+
+## TESS gateway local database information
+#local_database:
+#  username: [CHANGE ME]
+#  password: [CHANGE ME]
+#  host: [CHANGE ME]
+#  port: [CHANGE ME]
+#  database: [CHANGE ME]
+#  ssl: [CHANGE ME]
+#
+
+## TESS gateway database information
+tess_database:
+  username: [CHANGE ME]
+  password: [CHANGE ME]
+  host: [CHANGE ME]
+  port: [CHANGE ME]
+  database: [CHANGE ME]
+  ssl: [CHANGE ME]
+
+
+## TESS gateway random experiment condition schedule information
+
+# Air Quality Chart .5 um - Small Count Reading
+# 3000+ = Very poor
+# 1050 - 3000 = Poor
+# 300 - 1050 = Fair
+# 150 - 300 = Good
+# 75 - 150 = Very Good
+# 0 - 75 = Excellent
+
+# duration_minute = 0 : Turn on fan constantly until other rules are applied. Be careful on this setting because Thermostat will keep running with fan on
+
+# Condition schedule examples
+#schedule.every().day.at("00:00").do(self.start)
+#schedule.every(3).minutes.do(self.start)
+#schedule.every(4).seconds.do(self.start)
+#schedule.every(10).minutes.do(self.start)
+#schedule.every().hour.do(self.start)
+#schedule.every().day.at("10:30").do(self.start)
+#schedule.every().monday.do(self.start)
+#schedule.every().wednesday.at("13:15").do(self.start)
+
+schedule_handler:
+  statement: schedule.every().day.at("00:00").do(self.start)
+
+
+# TESS RCT condition list information
+conditions:
+  - name: 'on'
+    mode: 'on'
+    modulename: 'tess.conditions.thermostats.on'
+    classname: 'OnCondition'
+    active: 1
+
+  - name: 'normal'
+    mode: 'normal'
+    modulename: 'tess.conditions.thermostats.normal'
+    classname: 'NormalCondition'
+    active: 1
+
+  - name: 'smartair'
+    mode: 'smartair'
+    modulename: 'tess.conditions.thermostats.smartair'
+    classname: 'SmartAirCondition'
+    active: 1
+
+  - name: 'runtime20'
+    mode: 'runtime20'
+    modulename: 'tess.conditions.thermostats.runtime20'
+    classname: 'Runtime20Condition'
+    active: 1
+
+  - name: 'runtime40'
+    mode: 'runtime40'
+    modulename: 'tess.conditions.thermostats.runtime40'
+    classname: 'Runtime40Condition'
+    active: 1
+
+
+# TESS monitoring condition information
+monitor_conditions:
+  - name: 'monitor'
+    mode: 'monitor'
+    modulename: 'tess.conditions.thermostats.monitor'
+    classname: 'MonitorCondition'
+    active: 1
+
+
+
+# TESS behavior of the actuator system list information
+states:
+  - name: 'on'
+    mode: 'on'
+    modulename: 'tess.states.thermostats.on_state'
+    classname: 'OnState'
+    active: 1
+
+  - name: 'off'
+    mode: 'off'
+    modulename: 'tess.states.thermostats.off_state'
+    classname: 'OffState'
+    active: 1
+
+
+
+# TESS random experiment rule information 
+#The World Health Organization considers the safe level at 25 micrograms per cubic meter of the particulates.
+rules:
+    ######################### Emergency Shutdown ################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    #### Temperature above the critial threshold ################################
+  - type: query
+    sensor: *sensorlist
+    query: SELECT MAX(value) FROM "°F" WHERE ("entity_id"='{sensor1}_temperature' or "entity_id"='{sensor2}_temperature') and time > now() - 5m
+    name: shutdown
+    actuator_id: 0
+    actuator_mode: 'shutdown'
+    above_query:
+    above: 110 #degree F
+    when_occupied: 
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+
+  - type: query
+    sensor: *sensorlist
+    query: SELECT MAX(value) FROM "pm" WHERE ("entity_id"='{sensor1}_small' or "entity_id"='{sensor2}_small') and time > now() - 2m
+    name: shutdown
+    actuator_id: 0
+    actuator_mode: 'shutdown'
+    above_query:
+    above: 50000
+    when_occupied: true
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #############################################################################
+
+    ########################## On Rules #####################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    # I have two separate rules so that if any one of the rules goes above the threahold, then turn on fan.
+  - type: query
+    sensor: *sensorlist
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{sensor1}_small' and time > now() - 2m
+    name: on
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+
+  - type: query
+    sensor: *sensorlist
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{sensor2}_small' and time > now() - 2m
+    name: on
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #######################################################################################
+
+    ######################### Off Rules ################################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    # Turn off furnace fan (MIN function)
+    # Average two monitor values and turn off when the average of two monitors go below the threshold
+  - type: query
+    sensor: *sensorlist
+    query: SELECT MAX(value) FROM "pm" WHERE ("entity_id"='{sensor1}_small' or "entity_id"='{sensor2}_small') and time > now() - 5m
+    name: off
+    actuator_id: 0
+    actuator_mode: 'auto'
+    below_query:
+    below: 788
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1
+    active: 1
+    notifications:

@@ -1,0 +1,6 @@
+test_version_from_git
+test_alphanumeric_tags_match
+date
+test_find_files_stop_at_root_git
+pytest
+integration

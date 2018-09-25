@@ -1,0 +1,159 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.state_machines.jobs.actuator_rule_job &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.state_machines.jobs.actuator_rule_job</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">string</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<span class="kn">from</span> <span class="nn">tess.state_machines.actuator_state</span> <span class="k">import</span> <span class="n">ActuatorState</span>
+<span class="kn">from</span> <span class="nn">tess.state_machines.actuator_state_T</span> <span class="k">import</span> <span class="n">ActuatorStateT</span>
+
+<span class="kn">from</span> <span class="nn">tess.common.const</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">tess.common.shared</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+<span class="n">hostname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="ActuatorRuleJob"><a class="viewcode-back" href="../../../../api/tess.state_machines.jobs.html#tess.state_machines.jobs.actuator_rule_job.ActuatorRuleJob">[docs]</a><span class="k">class</span> <span class="nc">ActuatorRuleJob</span><span class="p">(</span><span class="n">ActuatorStateT</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_init</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ActuatorRuleJob.state_init"><a class="viewcode-back" href="../../../../api/tess.state_machines.jobs.html#tess.state_machines.jobs.actuator_rule_job.ActuatorRuleJob.state_init">[docs]</a>    <span class="k">def</span> <span class="nf">state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuatoron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">actuatoron</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuatoroff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">actuatoroff</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">currentState</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">actuatoroff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">currentState</span><span class="o">.</span><span class="n">update_state</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ActuatorRuleJob.state_run"><a class="viewcode-back" href="../../../../api/tess.state_machines.jobs.html#tess.state_machines.jobs.actuator_rule_job.ActuatorRuleJob.state_run">[docs]</a>    <span class="k">def</span> <span class="nf">state_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">currentState</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">currentState</span><span class="o">.</span><span class="n">update_state</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ActuatorRuleJob.stop"><a class="viewcode-back" href="../../../../api/tess.state_machines.jobs.html#tess.state_machines.jobs.actuator_rule_job.ActuatorRuleJob.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ActuatorRuleJob.run"><a class="viewcode-back" href="../../../../api/tess.state_machines.jobs.html#tess.state_machines.jobs.actuator_rule_job.ActuatorRuleJob.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Actuator Rule: turning on the actuator device&quot;</span><span class="p">)</span>
+        <span class="c1">#self.update_current_state_variables(self.ecobee_id)</span>
+
+        <span class="c1">######### Call Base function ########</span>
+        <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="n">ActuatorRuleJob</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">runnable</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Failed the check condition. Don&#39;t run fan automation</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1">#####################################</span>
+
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;home_id&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;home_id&#39;</span><span class="p">]}</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;random&#39;</span><span class="p">:</span> <span class="s1">&#39;Rule&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_notification_tags</span><span class="p">(</span><span class="n">ACTUATOR_EXP_TABLE_NAME</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+
+
+        <span class="c1"># Reset the fan min on minute to zero in case if the fan min on is set to something else</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actuator_runtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actuator_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_state_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_notification</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actuator_info</span><span class="p">[</span><span class="s1">&#39;home_id&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_run</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+                <span class="k">continue</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,12 @@
+latex_documents
+pygments_style
+os
+sys
+extensions
+htmlhelp_basename
+add_module_names
+add_function_parentheses
+source_suffix
+project
+master_doc
+copyright

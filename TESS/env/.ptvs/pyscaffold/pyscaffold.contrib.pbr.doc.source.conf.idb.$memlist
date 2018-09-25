@@ -1,0 +1,16 @@
+sys
+copyright
+htmlhelp_basename
+add_module_names
+extensions
+master_doc
+os
+html_theme_path
+latex_documents
+source_suffix
+html_static_path
+project
+templates_path
+pygments_style
+add_function_parentheses
+html_theme

@@ -1,0 +1,28 @@
+---
+# v1.0 - General TESS ecobee controller and monitor configuration
+
+# systemd services for controller and monitor
+pe_root: /home/pi
+pe_user: pi
+pe_group: pi
+pe_virtualenv_path: /srv/pi/venv
+pe_working_directory: /srv/pi/venv/TESS/tess
+
+pe_execstartpre_controller: 'source {{ pe_virtualenv_path }}/bin/activate'
+pe_execstart_controller: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/prisms_ecobee_controller.py controller ecobee_controller.conf rules.yaml > prisms-ecobee-controller.log 2>&1'
+
+pe_execstartpre_monitor: 'source {{ pe_virtualenv_path }}/bin/activate'
+pe_execstart_monitor: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/prisms_ecobee_controller.py monitor ecobee_monitor.conf rules.yaml > prisms-ecobee-monitor.log 2>&1'
+
+
+# ecobee configuration file variables
+monitor_api_key: [CHANGE ME]
+controller_api_key: [CHANGE ME]
+
+
+# rules.yaml variables
+home_id: prisms-gateway
+home_sensors: monitor12, monitor13
+
+kitchen_sensor: monitor12
+room_sensor: monitor13

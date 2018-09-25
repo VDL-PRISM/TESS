@@ -1,0 +1,10 @@
+index
+text_type
+ID
+StemmingAnalyzer
+QueryParser
+BaseSearch
+ensuredir
+WhooshSearch
+Schema
+TEXT

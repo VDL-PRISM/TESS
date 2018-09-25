@@ -1,0 +1,12 @@
+[Unit]
+Description=TESS Monitor
+After=network.target
+
+[Service]
+Type=simple
+User={{ pe_user }}
+WorkingDirectory={{ pe_working_directory }}
+ExecStart={{ pe_execstart_monitor }}
+
+[Install]
+WantedBy=multi-user.target

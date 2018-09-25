@@ -1,0 +1,130 @@
+# Smart device web API information
+actuator_handler:
+  url_pin: <<Authorization Link>>
+  url_tokens: <<Token Link>>
+  home_id: [CHANGE ME]
+
+
+# TESS gateway local database information
+local_database:
+  username: [CHANGE ME]
+  password: [CHANGE ME]
+  host: [CHANGE ME]
+  port: [CHANGE ME]
+  database: [CHANGE ME]
+  ssl: [CHANGE ME]
+
+
+# TESS gateway remote database information
+remote_database:
+  username: [CHANGE ME]
+  password: [CHANGE ME]
+  host: [CHANGE ME]
+  port: [CHANGE ME]
+  database: [CHANGE ME]
+  ssl: [CHANGE ME]
+
+
+
+# TESS gateway random experiment condition schedule information
+
+# duration_minute = 0 : Turn on fan constantly until other rules are applied. Be careful on this setting because Thermostat will keep running with fan on
+
+# Condition schedule examples
+#schedule.every().day.at("00:00").do(self.start_condition)
+#schedule.every(3).minutes.do(self.start_condition)
+#schedule.every(4).seconds.do(self.start_condition)
+#schedule.every(10).minutes.do(self.start_condition)
+#schedule.every().hour.do(self.start_condition)
+#schedule.every().day.at("10:30").do(self.start_condition)
+#schedule.every().monday.do(self.start_condition)
+#schedule.every().wednesday.at("13:15").do(self.start_condition)
+
+schedule_handler:
+  statement: schedule.every().day.at("00:00").do(self.start_condition)
+
+
+# TESS random condition list information
+conditions:
+  - name: on
+    mode: 'on'
+    begin_time: '00:00' #10:00 AM 
+    active: 1
+
+  - name: off
+    mode: 'off'
+    begin_time: '00:00' #10:00 AM
+    active: 1
+
+  - name: rule
+    mode: 'rule'
+    begin_time: '00:00' #10:00 AM
+    active: 1
+
+
+# TESS random experiment rule information 
+rules:
+    ######################### Emergency Shutdown ################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    #### Ex. Temperature above the critial threshold ################################
+  - type: query
+    sensor: monitor103, monitor112
+    query: SELECT MAX(value) FROM "°F" WHERE ("entity_id"='{}_temperature' or "entity_id"='{}_temperature') and time > now() - 5m
+    name: shutdown
+    actuator_id: 0
+    actuator_mode: 'shutdown'
+    above_query:
+    above: 110 #degree F
+    when_occupied: 
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #############################################################################
+
+    ########################## On Rules #####################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+  - type: query
+    sensor: monitor103
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{}_small' and time > now() - 2m
+    name: furnacefanon
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+
+  - type: query
+    sensor: monitor112
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{}_small' and time > now() - 2m
+    name: on
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #######################################################################################
+
+    ######################### Off Rules ################################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+  - type: query
+    sensor: monitor103, monitor112
+    query: SELECT MAX(value) FROM "pm" WHERE ("entity_id"='{}_small' or "entity_id"='{}_small') and time > now() - 5m
+    name: off
+    actuator_id: 0
+    actuator_mode: 'off'
+    below_query:
+    below: 788
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1
+    active: 1
+    notifications:

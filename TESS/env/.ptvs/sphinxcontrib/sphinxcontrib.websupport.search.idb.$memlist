@@ -1,0 +1,7 @@
+xapiansearch
+text_type
+SEARCH_ADAPTERS
+BaseSearch
+whooshsearch
+nullsearch
+re

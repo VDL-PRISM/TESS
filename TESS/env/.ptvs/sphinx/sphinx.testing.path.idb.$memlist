@@ -1,0 +1,8 @@
+PY2
+text_type
+os
+open
+shutil
+FILESYSTEMENCODING
+path
+sys

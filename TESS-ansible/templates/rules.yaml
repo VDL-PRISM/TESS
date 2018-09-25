@@ -1,0 +1,141 @@
+---
+# v1.0 - rules file to controll thermostat
+actuator_handler:
+  url_pin: https://api.ecobee.com/authorize
+  url_tokens: https://api.ecobee.com/token
+  url_thermostat: https://api.ecobee.com/1/thermostat
+  home_id: {{ home_id }}
+  actuator_min_on_minutes_per_hour: [20, 40]
+
+
+## TESS gateway local database information
+local_database:
+  username: [CHANGE ME]
+  password: [CHANGE ME]
+  host: [CHANGE ME]
+  port: [CHANGE ME]
+  database: [CHANGE ME]
+  ssl: [CHANGE ME]
+
+
+## TESS gateway remote database information
+remote_database:
+  username: [CHANGE ME]
+  password: [CHANGE ME]
+  host: [CHANGE ME]
+  port: [CHANGE ME]
+  database: [CHANGE ME]
+  ssl: [CHANGE ME]
+
+
+## TESS gateway random experiment condition schedule informationcondition_schedule:
+  statement: schedule.every().day.at("00:00").do(self.start_condition)
+
+
+# TESS random condition list information
+conditions:
+  - name: on
+    mode: 'on'
+    begin_time: '00:00' #10:00 AM 
+    active: 1
+
+  - name: off
+    mode: 'off'
+    begin_time: '00:00' #10:00 AM
+    active: 1
+
+  - name: rule
+    mode: 'rule'
+    begin_time: '00:00' #10:00 AM
+    active: 1
+
+  - name: runtime
+    mode: 'runtime'
+    begin_time: '00:00' #10:00 AM
+    active: 1
+
+
+# TESS random experiment rule information 
+#The World Health Organization considers the safe level at 25 micrograms per cubic meter of the particulates.
+rules:
+    ######################### Emergency Shutdown ################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    #### Temperature above the critial threshold ################################
+  - type: query
+    sensor: {{ home_sensors }}
+    query: SELECT MAX(value) FROM "°F" WHERE ("entity_id"='{}_temperature' or "entity_id"='{}_temperature') and time > now() - 5m
+    name: shutdown
+    actuator_id: 0
+    actuator_mode: 'shutdown'
+    above_query:
+    above: 110 #degree F
+    when_occupied: 
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+
+  - type: query
+    sensor: {{ home_sensors }}
+    query: SELECT MAX(value) FROM "pm" WHERE ("entity_id"='{}_small' or "entity_id"='{}_small') and time > now() - 2m
+    name: shutdown
+    actuator_id: 0
+    actuator_mode: 'shutdown'
+    above_query:
+    above: 50000
+    when_occupied: true
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #############################################################################
+
+    ########################## On Rules #####################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    # I have two separate rules so that if any one of the rules goes above the threahold, then turn on fan.
+  - type: query
+    sensor: {{ kitchen_sensor }}
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{}_small' and time > now() - 2m
+    name: on
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0 # 0 = indefinite
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+
+  - type: query
+    sensor: {{ room_sensor }}
+    query: SELECT MEAN(value) FROM "pm" WHERE "entity_id"='{}_small' and time > now() - 2m
+    name: on
+    actuator_id: 0
+    actuator_mode: 'on'
+    above_query:
+    above: 1050
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1 
+    active: 1
+    notifications:
+    #######################################################################################
+
+    ######################### Off Rules ################################################
+    # Write a list of sensors (comma separated) to form a SQL statement to query data against the database
+    # Average two monitor values and turn off when the average of two monitors goes below the threshold
+  - type: query
+    sensor: {{ home_sensors }}
+    query: SELECT MAX(value) FROM "pm" WHERE ("entity_id"='{}_small' or "entity_id"='{}_small') and time > now() - 5m
+    name: off
+    actuator_id: 0
+    actuator_mode: 'auto'
+    below_query:
+    below: 788
+    when_occupied: true
+    duration_minute: 0
+    max_trigger_attempts: -1
+    active: 1
+    notifications:
+

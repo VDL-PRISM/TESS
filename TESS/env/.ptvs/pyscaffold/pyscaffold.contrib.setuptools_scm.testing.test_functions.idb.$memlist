@@ -1,0 +1,12 @@
+meta
+pkg_resources
+test_dump_version_doesnt_bail_on_value_error
+PRETEND_KEY
+format_version
+dump_version
+get_version
+test_dump_version_works_with_pretend
+VERSIONS
+pytest
+guess_next_version
+MockTime

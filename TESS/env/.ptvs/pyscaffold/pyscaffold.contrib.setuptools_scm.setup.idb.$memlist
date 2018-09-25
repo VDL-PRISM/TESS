@@ -1,0 +1,11 @@
+sdist
+sdist_orig
+os
+sys
+setuptools
+arguments
+print_function
+PROBLEMATIC_COMMANDS
+long_description
+scm_config
+fp

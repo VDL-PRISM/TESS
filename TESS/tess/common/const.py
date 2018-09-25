@@ -1,0 +1,22 @@
+from _datetime import timedelta
+
+ACTUATOR_MODE_ON = "on"
+ACTUATOR_MODE_OFF = "off"
+ACTUATOR_MODE_AUTO = "auto"
+ACTUATOR_MODE_RESUME = "resume"
+ACTUATOR_MODE_SHUTDOWN = "shutdown"
+
+MIN_TIME_BETWEEN_UPDATES = 180
+
+HVAC_MODE_OFF = "off"
+HVAC_MODE_HEAT = "heat"
+HVAC_MODE_COLD = "cold"
+HVAC_MODE_AUTO = "auto"
+
+THERMOSTAT_NORMAL_OP = ['auxHeat', 'auxCool', 'compCool']
+
+DEFAULT_COOL_TEMP = 82
+DEFAULT_HEAT_TEMP = 69
+
+TEST_MODE = True
+#MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=180)

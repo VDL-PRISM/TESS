@@ -1,0 +1,225 @@
+---
+- name: Set up TESS Ecobee Controller and Monitor
+  hosts: servers
+  remote_user: pi
+  become: yes
+  vars_files:
+    - vars.yaml
+  
+  tasks:
+  - name: Update packages
+    apt:
+      update_cache=yes upgrade=yes
+    tags:
+      - upgrade_packages
+
+  - name: Install necessary packages
+    apt:
+      pkg: "{{ item }}"
+      state: present
+    with_items:
+      - git
+      - python-dev
+      - python-setuptools
+    tags:
+      - setup
+
+  - name: Install pip
+    easy_install:
+      name: pip
+      state: latest
+    tags:
+      - setup
+
+  - name: Install virtualenv python package
+    pip:
+      name: virtualenv
+    tags:
+      - setup
+
+  - name: Check for the virtualenv folder
+    stat:
+      path: /srv/pi/venv
+    register: venv_folder
+    tags:
+      - setup
+
+  - name: Create the srv/pi directory
+    file:
+      path: /srv/pi
+      state: directory
+      owner: pi
+    when: venv_folder.stat.exists == False
+    tags:
+      - setup
+
+  - name: Create a virtualenv for prisms-ecobee-controller
+    command: virtualenv -p python3.4 /srv/pi/venv
+    register: venv_setup
+    when: venv_folder.stat.exists == False
+    tags:
+      - setup
+
+  - name: Change owner of the folder
+    file:
+      path: /srv/pi
+      state: directory
+      recurse: yes
+      owner: pi
+    when: venv_folder.stat.exists == False
+    tags:
+      - setup
+
+  - name: Create .ssh directory
+    file:
+      path: /home/pi/.ssh
+      state: directory
+    tags:
+      - ssh
+
+  - name: Create the SSH public key file for TESS Ecobee Controller
+    copy:
+      src: ~/.ssh/ecobee_rsa.pub
+      dest: /home/pi/.ssh/ecobee_rsa.pub
+      owner: pi
+      mode: 0644
+    tags:
+      - ssh
+
+  - name: Create the SSH private key file for TESS Ecobee Controller
+    copy:
+      src: ~/.ssh/ecobee_rsa
+      dest: /home/pi/.ssh/ecobee_rsa
+      owner: pi
+      mode: 0600
+    tags:
+      - ssh
+
+  - name: Install TESS Ecobee Controller code
+    git:
+      repo: git@github.com:VDL-PRISM/prisms-ecobee-controller.git
+      dest: "/srv/pi/venv/prisms-ecobee-controller"
+      accept_hostkey: yes
+      force: yes
+      key_file: /home/pi/.ssh/ecobee_rsa
+      version: bimodal
+    become: yes
+    become_user: pi
+    register: code
+    tags:
+      - code
+      - controller
+      - monitor
+
+
+  - name: Set up thermostat (ecobee) rules for TESS Ecobee Controller
+    template:
+      src: rules.yaml
+      dest: /srv/pi/venv/prisms-ecobee-controller/rules.yaml
+      owner: pi
+      group: pi
+      mode: 0644
+    register: ecobee_rules
+    tags:
+      - code
+      - rules
+
+
+  - name: Check for ecobee_controller.conf file for TESS Ecobee Controller
+    stat:
+      path: /srv/pi/venv/prisms-ecobee-controller/ecobee_controller.conf
+    register: ecobee_controller_conf
+    tags:
+      - code
+      - controller
+      - ecobee
+
+  - name: Set up ecobee_controller.conf file for TESS Ecobee Controller
+    template:
+      src: ecobee_controller.conf
+      dest: /srv/pi/venv/prisms-ecobee-controller/ecobee_controller.conf
+      owner: pi
+      group: pi
+      mode: 0644
+    register: ecobee_controller
+    when: ecobee_controller_conf.stat.exists == False
+    tags:
+      - code
+      - controller
+      - ecobee
+
+
+  - name: Check for ecobee_monitor.conf file for TESS Ecobee Monitor
+    stat:
+      path: /srv/pi/venv/prisms-ecobee-controller/ecobee_monitor.conf
+    register: ecobee_monitor_conf
+    tags:
+      - code
+      - monitor
+      - ecobee
+
+  - name: Set up ecobee_monitor.conf file for TESS Ecobee Monitor
+    template:
+      src: ecobee_monitor.conf
+      dest: /srv/pi/venv/prisms-ecobee-controller/ecobee_monitor.conf
+      owner: pi
+      group: pi
+      mode: 0644
+    register: ecobee_monitor
+    when: ecobee_monitor_conf.stat.exists == False
+    tags:
+      - code
+      - monitor
+      - ecobee
+
+  - name: Activate the virtualenv and install requirements
+    shell: 
+      cmd: |
+        source /srv/pi/venv/bin/activate
+        pip install -r /srv/pi/venv/prisms-ecobee-controller/requirements.txt
+    args:
+      executable: /bin/bash
+    tags:
+      - code
+      - controller
+      - monitor
+
+  - name: Set up controller service to run on boot
+    template:
+      src: prisms-ecobee-controller.service
+      dest: /etc/systemd/system/prisms-ecobee-controller.service
+    register: ctlservice
+    tags:
+      - systemd
+      - controller
+
+  - name: Restart the TESS Ecobee Controller service
+    systemd:
+      name: prisms-ecobee-controller.service
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+    when: code.changed or ctlservice.changed or ecobee_controller.changed or ecobee_rules.changed
+    tags:
+      - systemd
+      - controller
+
+  - name: Set up monitor service to run on boot
+    template:
+      src: prisms-ecobee-monitor.service
+      dest: /etc/systemd/system/prisms-ecobee-monitor.service
+    register: monservice
+    tags:
+      - systemd
+      - monitor
+
+  - name: Restart the TESS Ecobee Monitor service
+    systemd:
+      name: prisms-ecobee-monitor.service
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+    when: code.changed or monservice.changed or ecobee_monitor.changed
+    tags:
+      - systemd
+      - monitor

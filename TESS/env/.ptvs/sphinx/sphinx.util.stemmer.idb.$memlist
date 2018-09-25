@@ -1,0 +1,8 @@
+porter
+StandardStemmer
+PorterStemmer
+BaseStemmer
+PyStemmer
+_PyStemmer
+PYSTEMMER
+get_stemmer

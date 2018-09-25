@@ -1,0 +1,1009 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "TESS" "1" "Aug 24, 2017" "0.1+ng8c4db3a.dirty" "TESS"
+.SH NAME
+tess \- TESS 0.1+ng8c4db3a.dirty
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.sp
+This is the documentation of \fBTESS\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+This is the main page of your project’s \fI\%Sphinx\fP
+documentation. It is formatted in \fI\%reStructuredText\fP\&. Add additional pages by creating
+rst\-files in \fBdocs\fP and adding them to the \fI\%toctree\fP below. Use then
+\fI\%references\fP in order to link
+them from this page, e.g. authors and changes\&.
+.sp
+It is also possible to refer to the documentation of other Python packages
+with the \fI\%Python domain syntax\fP\&. By default you
+can reference the documentation of \fI\%Sphinx\fP,
+\fI\%Python\fP, \fI\%NumPy\fP, \fI\%SciPy\fP, \fI\%matplotlib\fP, \fI\%Pandas\fP, \fI\%Scikit\-Learn\fP\&. You can add more by
+extending the \fBintersphinx_mapping\fP in your Sphinx’s \fBconf.py\fP\&.
+.sp
+The pretty useful extension \fI\%autodoc\fP is activated by
+default and lets you include documentation from docstrings. Docstrings can
+be written in \fI\%Google\fP
+(recommended!), \fI\%NumPy\fP
+and \fI\%classical\fP
+style.
+.UNINDENT
+.UNINDENT
+.SH CONTENTS
+.SS License
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Copyright 2017 Kyeong T. Min
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Developers
+.INDENT 0.0
+.IP \(bu 2
+Kyeong T. Min <\fI\%kyeongm@gmail.com\fP>
+.UNINDENT
+.SS Changelog
+.SS Version 0.1
+.INDENT 0.0
+.IP \(bu 2
+Feature A added
+.IP \(bu 2
+FIX: nasty bug #1729 fixed
+.IP \(bu 2
+add your changes here!
+.UNINDENT
+.SS Modules
+.SS main module
+.INDENT 0.0
+.TP
+.B main.main(process, rule_config_file, logging_config_file=\(aqlogging_controller.yaml\(aq)
+Choose which process to run by accepting an argument.
+.UNINDENT
+.SS tess package
+.SS Subpackages
+.SS tess.actuators package
+.SS Subpackages
+.SS tess.actuators.lights package
+.SS Submodules
+.SS tess.actuators.lights.light_actuator module
+.INDENT 0.0
+.TP
+.B class tess.actuators.lights.light_actuator.LightActuator(automation)
+Bases: \fBtess.actuators.BaseActuator\fP
+.INDENT 7.0
+.TP
+.B change_settings(id, name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B read_settings(id, name)
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS tess.actuators.sounds package
+.SS Submodules
+.SS tess.actuators.sounds.sound_actuator module
+.INDENT 0.0
+.TP
+.B class tess.actuators.sounds.sound_actuator.SoundActuator(automation)
+Bases: \fBtess.actuators.BaseActuator\fP
+.INDENT 7.0
+.TP
+.B change_settings(id, name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B read_settings(id, name)
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS tess.actuators.thermostats package
+.SS Subpackages
+.SS tess.actuators.thermostats.ecobee package
+.SS Subpackages
+.SS tess.actuators.thermostats.ecobee.pyecobee package
+.SS Module contents
+.sp
+Python Code for Communication with the Ecobee Thermostat
+.INDENT 0.0
+.TP
+.B class tess.actuators.thermostats.ecobee.pyecobee.Ecobee(appname, ecobee_info, db, config_filename=None, api_key=None, config=None)
+Bases: \fI\%object\fP
+.sp
+Class for storing Ecobee Thermostats and Sensors
+.INDENT 7.0
+.TP
+.B get_remote_sensors(index)
+Return remote sensors based on index
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_thermostat(index)
+Return a single thermostat based on index
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_thermostats()
+Set self.thermostats to a json list of thermostats from ecobee
+.UNINDENT
+.INDENT 7.0
+.TP
+.B refresh_tokens()
+refresh tokens fail sometimes although it shouldn’t fail
+when the api_key and refresh_tokens are provided.
+Let’s try at max 5 times with sleep 2 seconds
+.UNINDENT
+.INDENT 7.0
+.TP
+.B request_pin()
+Method to request a PIN from ecobee for authorization
+.UNINDENT
+.INDENT 7.0
+.TP
+.B request_tokens()
+Method to request API tokens from ecobee
+.UNINDENT
+.INDENT 7.0
+.TP
+.B resume_program(index, resume_all=\(aqfalse\(aq)
+Resume currently scheduled program
+.UNINDENT
+.INDENT 7.0
+.TP
+.B send_message(index, message=\(aqHello from python\-ecobee!\(aq)
+Send a message to the thermostat
+.UNINDENT
+.INDENT 7.0
+.TP
+.B set_climate_hold(index, climate, hold_type=\(aqnextTransition\(aq)
+Set a climate hold \- ie away, home, sleep
+.UNINDENT
+.INDENT 7.0
+.TP
+.B set_fan_min_on_time(index, fan_min_on_time)
+The minimum time, in minutes, to run the fan each hour. Value from 1 to 60
+.UNINDENT
+.INDENT 7.0
+.TP
+.B set_hold_temp(index, cool_temp, heat_temp, hold_type=\(aqnextTransition\(aq)
+Set a hold
+.UNINDENT
+.INDENT 7.0
+.TP
+.B set_hvac_mode(index, hvac_mode)
+possible hvac modes are auto, auxHeatOnly, cool, heat, off
+.UNINDENT
+.INDENT 7.0
+.TP
+.B update()
+Get new thermostat data from ecobee
+.UNINDENT
+.INDENT 7.0
+.TP
+.B write_tokens_to_file()
+Write api tokens to a file
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.actuators.thermostats.ecobee.pyecobee.config_from_file(filename, config=None)
+Small configuration file management function
+.UNINDENT
+.SS Submodules
+.SS tess.actuators.thermostats.ecobee.prisms_ecobee module
+.INDENT 0.0
+.TP
+.B class tess.actuators.thermostats.ecobee.prisms_ecobee.PrismsEcobee(appname, ecobee_info, db, config_filename=None, api_key=None, config=None)
+Bases: \fBtess.actuators.thermostats.ecobee.pyecobee.Ecobee\fP
+.INDENT 7.0
+.TP
+.B get_desired_cool(index)
+Get desired heat temperature
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_desired_cool_heat(index)
+Get desired heat temperature
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_desired_fanmode(index)
+Get desired fanmode
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_desired_heat(index)
+Get desired heat temperature
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_hold_action(index)
+Get hold action
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_hvac_mode(index)
+Get hvac mode
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_occupancy(index)
+Get occupancy
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_runtime_data(index, fieldname)
+Get desired runtime field value
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_settings_data(index, fieldname)
+Get field value
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_thermostat_data(index, fieldname)
+Get thermostat state value
+.UNINDENT
+.INDENT 7.0
+.TP
+.B turn_fan_off(index, cool_temp=82, heat_temp=69, hold_type=\(aqindefinite\(aq, duration_minute=0)
+Set a fan off
+.UNINDENT
+.INDENT 7.0
+.TP
+.B turn_fan_on(index, cool_temp, heat_temp, hold_type=\(aqindefinite\(aq, duration_minute=0)
+Set a hold and fan on without changing the temperature in home .
+Important not to change the user’s temperature setting for heat or cold.
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS Submodules
+.SS tess.actuators.thermostats.ecobee_actuator module
+.INDENT 0.0
+.TP
+.B class tess.actuators.thermostats.ecobee_actuator.EcobeeActuator(automation)
+Bases: \fBtess.actuators.BaseActuator\fP
+.INDENT 7.0
+.TP
+.B change_settings(id, name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B desired_cool
+.UNINDENT
+.INDENT 7.0
+.TP
+.B desired_heat
+.UNINDENT
+.INDENT 7.0
+.TP
+.B equipment_status
+.UNINDENT
+.INDENT 7.0
+.TP
+.B fan_mode
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_actuator_summary_data(id, class_name)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B hold_action
+.UNINDENT
+.INDENT 7.0
+.TP
+.B hvac_mode
+.UNINDENT
+.INDENT 7.0
+.TP
+.B occupancy
+.UNINDENT
+.INDENT 7.0
+.TP
+.B read_settings(id, name)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B update_settings(id)
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.actuators.BaseActuator(automation)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B change_settings(id, name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B read_settings(id, name)
+.UNINDENT
+.UNINDENT
+.SS tess.analysis package
+.SS Submodules
+.SS tess.analysis.analysis module
+.INDENT 0.0
+.TP
+.B class tess.analysis.analysis.Analysis(automation)
+Bases: \fI\%tess.analysis.BaseAnalysis\fP
+.INDENT 7.0
+.TP
+.B add_new_datapoint(name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B calc_stats(name)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B db_record_event_tags_fields(measurement, tags, fields)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B db_record_home_data(home_id, data)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B db_record_rule_data(rule, data)
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.analysis.BaseAnalysis(automation)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B add_new_datapoint(name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B calc_stats(name)
+.UNINDENT
+.UNINDENT
+.SS tess.automations package
+.SS Submodules
+.SS tess.automations.tess_controller module
+.INDENT 0.0
+.TP
+.B class tess.automations.tess_controller.TESSController(rule_config_file)
+Bases: \fI\%tess.automations.TESSAutomation\fP
+.sp
+Baseclass for all TESS Controllers.
+Control and automate the start thermostat for the fan operation.
+.sp
+Must be run as a service class.
+.INDENT 7.0
+.TP
+.B run()
+.INDENT 7.0
+.IP 1. 3
+Schedule conditions in random.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B start()
+.INDENT 7.0
+.IP 3. 3
+Choose a random condition and submit it to executor to run it now.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS tess.automations.tess_monitor module
+.INDENT 0.0
+.TP
+.B class tess.automations.tess_monitor.TESSMonitor(rule_config_file)
+Bases: \fI\%tess.automations.TESSAutomation\fP
+.sp
+Baseclass for all TESS Monitors.
+Monitor the smart thermostat state especially fan mode.
+.sp
+Run monitoring service continuously
+.INDENT 7.0
+.TP
+.B run()
+Run the monitoring now
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.automations.TESSAutomation(rule_config_file)
+Bases: \fI\%object\fP
+.sp
+Baseclass for all TESS Controllers.
+Control and automate the start thermostat for the fan operation.
+.sp
+Must be run as a service class.
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B start()
+.UNINDENT
+.UNINDENT
+.SS tess.common package
+.SS Submodules
+.SS tess.common.condition module
+.INDENT 0.0
+.TP
+.B class tess.common.condition.Condition(automation, name, mode, modulename, classname, begin_time, active=1)
+Bases: \fI\%object\fP
+.sp
+Represent random conditions for the controller to execute
+.INDENT 7.0
+.TP
+.B static create_conditions(conditions, automation)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B exit()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_running()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B stopped()
+.UNINDENT
+.UNINDENT
+.SS tess.common.const module
+.SS tess.common.influx_database module
+.INDENT 0.0
+.TP
+.B class tess.common.influx_database.Database(username, password, host, port, database, ssl=False)
+Bases: \fI\%object\fP
+.sp
+Manage the influxdb database interaction
+.INDENT 7.0
+.TP
+.B batch_upload(data)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_data(type, query)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B get_latest(type, query)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B record_event(home_id, event, time=None)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B record_event_tags(measurement, tags, fields, time=None)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B setup_queue(queue)
+.UNINDENT
+.UNINDENT
+.SS tess.common.notification module
+.INDENT 0.0
+.TP
+.B class tess.common.notification.Notification(actuator_handler)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B send_notification(home_id, actuator_mode, actuator_id=0)
+.UNINDENT
+.UNINDENT
+.SS tess.common.notify module
+.INDENT 0.0
+.TP
+.B class tess.common.notify.Notify(name, type, topic, qos)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B static create_notifications(notifications)
+.UNINDENT
+.UNINDENT
+.SS tess.common.rule module
+.INDENT 0.0
+.TP
+.B class tess.common.rule.Rule(type, sensor, name, query, actuator_id, actuator_mode, when_occupied, duration_minute=0, max_trigger_attempts=1, active=1, above_query=None, above=None, below_query=None, below=None, notifications=None)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B check(value, when_occupied)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static create_rules(rules)
+.UNINDENT
+.UNINDENT
+.SS tess.common.shared module
+.INDENT 0.0
+.TP
+.B exception tess.common.shared.DatabaseException
+Bases: \fI\%Exception\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class tess.common.shared.EcobeeState
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B check()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B next(input)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception tess.common.shared.NotificationException
+Bases: \fI\%Exception\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception tess.common.shared.StateUpdateException
+Bases: \fI\%Exception\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class tess.common.shared.throttle(limit, seconds)
+Bases: \fI\%object\fP
+.sp
+Throttle a function to execute at most X time per <seconds> seconds
+The function is executed on the forward edge.
+.UNINDENT
+.SS tess.common.state module
+.INDENT 0.0
+.TP
+.B class tess.common.state.State(automation, name, mode, module, classname, active=1)
+Bases: \fI\%object\fP
+.sp
+Represent random conditions for the controller to execute
+.INDENT 7.0
+.TP
+.B static create_states(states, automation)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B exit()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_running()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B stopped()
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS tess.conditions package
+.SS Subpackages
+.SS tess.conditions.thermostats package
+.SS Submodules
+.SS tess.conditions.thermostats.monitor module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.monitor.MonitorCondition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS tess.conditions.thermostats.normal module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.normal.NormalCondition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS tess.conditions.thermostats.on module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.on.OnCondition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS tess.conditions.thermostats.rule module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.rule.RuleCondition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.INDENT 7.0
+.TP
+.B check()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS tess.conditions.thermostats.runtime20 module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.runtime20.Runtime20Condition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.sp
+This class is for running fan on for a certain time period every hour
+regardless of air quality sensor data. Blind random test to see if we can compare Fan runtime to Fan rule.
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS tess.conditions.thermostats.runtime40 module
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.runtime40.Runtime40Condition(automation)
+Bases: \fI\%tess.conditions.thermostats.ThermostatBaseCondition\fP
+.sp
+This class is for running fan on for a certain time period every hour
+regardless of air quality sensor data. Blind random test to see if we can compare Fan runtime to Fan rule.
+.INDENT 7.0
+.TP
+.B run()
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.conditions.thermostats.ThermostatBaseCondition(automation)
+Bases: \fBtess.conditions.BaseCondition\fP
+.INDENT 7.0
+.TP
+.B exit()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_safe()
+Called to check if an emergency stutdown should happen
+based on rules
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.conditions.BaseCondition(automation)
+Bases: \fI\%object\fP
+.INDENT 7.0
+.TP
+.B change_settings(id, name, value)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B exit()
+Called when the experiment ends.
+Before exiting the state, add a new data point using analysis object
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_running
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_safe()
+Called to check if an emergency stutdown should happen
+based on rules
+.UNINDENT
+.INDENT 7.0
+.TP
+.B run(state_name)
+Called with each sensor measurement period
+.INDENT 7.0
+.TP
+.B Parameters
+\fBstate_name\fP (\fI[\fP\fI\%str\fP\fI]\fP) – state name as a string being used for check rules
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B stopped
+.UNINDENT
+.UNINDENT
+.SS tess.helpers package
+.SS Submodules
+.SS tess.helpers.dylos_pm_to_ug module
+.INDENT 0.0
+.TP
+.B tess.helpers.dylos_pm_to_ug.large_to_ug(large)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.dylos_pm_to_ug.pm25_to_aqi(pm25)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.dylos_pm_to_ug.series_small_large(small, large)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.dylos_pm_to_ug.small_to_ug(small, large)
+.UNINDENT
+.SS tess.helpers.helper module
+.INDENT 0.0
+.TP
+.B tess.helpers.helper.class_from_name(module_name, class_name, args)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.helper.get_next_state(items, conditions)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.helper.log_func(func)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.helpers.helper.time_func(func)
+.UNINDENT
+.SS Module contents
+.SS tess.states package
+.SS Subpackages
+.SS tess.states.thermostats package
+.SS Submodules
+.SS tess.states.thermostats.off_state module
+.INDENT 0.0
+.TP
+.B class tess.states.thermostats.off_state.OffState(automation)
+Bases: \fBtess.states.BaseState\fP
+.INDENT 7.0
+.TP
+.B state_check()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_exit()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_update()
+.UNINDENT
+.UNINDENT
+.SS tess.states.thermostats.on_state module
+.INDENT 0.0
+.TP
+.B class tess.states.thermostats.on_state.OnState(automation)
+Bases: \fBtess.states.BaseState\fP
+.INDENT 7.0
+.TP
+.B state_check()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_exit()
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_update()
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.states.thermostats.ThermostatState(automation)
+Bases: \fBtess.states.BaseState\fP
+.INDENT 7.0
+.TP
+.B is_safe()
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.INDENT 0.0
+.TP
+.B class tess.states.BaseState(automation)
+Bases: \fI\%object\fP
+.sp
+Base class for the actuator
+.sp
+Communicate to the Actuator API to control the operation.
+.sp
+Keep the state of the actuator device.
+.sp
+Record the current event to the TESS cloud server.
+.INDENT 7.0
+.TP
+.B actuator_triggered
+.UNINDENT
+.INDENT 7.0
+.TP
+.B actuator_triggered_else
+.UNINDENT
+.INDENT 7.0
+.TP
+.B actuator_value
+.UNINDENT
+.INDENT 7.0
+.TP
+.B is_running
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_check(state_name)
+Called with each sensor measurement period
+.INDENT 7.0
+.TP
+.B Parameters
+\fBstate_name\fP (\fI[\fP\fI\%str\fP\fI]\fP) – state name as a string being used for check rules
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B state_exit()
+Called when the experiment ends.
+Before exiting the state, add a new data point using analysis object
+.UNINDENT
+.INDENT 7.0
+.TP
+.B stopped
+.UNINDENT
+.UNINDENT
+.SS Submodules
+.SS tess.skeleton module
+.sp
+This is a skeleton file that can serve as a starting point for a Python
+console script. To run this script uncomment the following line in the
+entry_points section in setup.cfg:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B console_scripts =
+fibonacci = tess.skeleton:run
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Then run \fIpython setup.py install\fP which will install the command \fIfibonacci\fP
+inside your current environment.
+Besides console scripts, the header (i.e. until _logger…) of this file can
+also be used as template for Python modules.
+.sp
+Note: This skeleton file can be safely removed if not needed!
+.INDENT 0.0
+.TP
+.B tess.skeleton.fib(n)
+Fibonacci example function
+.INDENT 7.0
+.TP
+.B Parameters
+\fBn\fP (\fI\%int\fP) – integer
+.TP
+.B Returns
+n\-th Fibonacci number
+.TP
+.B Return type
+\fI\%int\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.skeleton.main(args)
+Main entry point allowing external calls
+.INDENT 7.0
+.TP
+.B Parameters
+\fBargs\fP (\fI[\fP\fI\%str\fP\fI]\fP) – command line parameter list
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.skeleton.parse_args(args)
+Parse command line parameters
+.INDENT 7.0
+.TP
+.B Parameters
+\fBargs\fP (\fI[\fP\fI\%str\fP\fI]\fP) – command line parameters as list of strings
+.TP
+.B Returns
+command line parameters namespace
+.TP
+.B Return type
+\fI\%argparse.Namespace\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.skeleton.run()
+Entry point for console_scripts
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tess.skeleton.setup_logging(loglevel)
+Setup basic logging
+.INDENT 7.0
+.TP
+.B Parameters
+\fBloglevel\fP (\fI\%int\fP) – minimum loglevel for emitting messages
+.UNINDENT
+.UNINDENT
+.SS Module contents
+.SS tests package
+.SS Submodules
+.SS tests.conftest module
+.sp
+Dummy conftest.py for tess.
+.sp
+If you don’t know what this is for, just leave it empty.
+Read more about conftest.py under:
+\fI\%https://pytest.org/latest/plugins.html\fP
+.SS tests.context module
+.SS tests.test_controller module
+.SS tests.test_monitor module
+.SS tests.test_skeleton module
+.INDENT 0.0
+.TP
+.B tests.test_skeleton.test_fib()
+.UNINDENT
+.SS Module contents
+.SH INDICES AND TABLES
+.INDENT 0.0
+.IP \(bu 2
+genindex
+.IP \(bu 2
+modindex
+.IP \(bu 2
+search
+.UNINDENT
+.SH COPYRIGHT
+2017, Kyeong T. Min
+.\" Generated by docutils manpage writer.
+.

@@ -1,0 +1,9 @@
+BaseSearch
+errors
+warnings
+storage
+SEARCH_ADAPTERS
+WebSupport
+search
+StorageBackend
+RemovedInSphinx20Warning

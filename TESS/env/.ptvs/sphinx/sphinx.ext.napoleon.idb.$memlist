@@ -1,0 +1,17 @@
+_patch_python_domain
+PY2
+iteritems
+List
+Config
+GoogleDocstring
+iterators
+Sphinx
+_process_docstring
+Dict
+sys
+sphinx
+Any
+setup
+docstring
+_skip_member
+NumpyDocstring

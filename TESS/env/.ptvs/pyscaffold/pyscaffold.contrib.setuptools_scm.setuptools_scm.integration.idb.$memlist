@@ -1,0 +1,7 @@
+_warn_if_setuptools_outdated
+version_keyword
+do
+find_matching_entrypoint
+get_version
+find_files
+os

@@ -1,0 +1,165 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tess.common.rule &#8212; TESS 0.1+ng8c4db3a.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1+ng8c4db3a.dirty',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tess.common.rule</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Rule"><a class="viewcode-back" href="../../../api/tess.common.html#tess.common.rule.Rule">[docs]</a><span class="k">class</span> <span class="nc">Rule</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">sensor</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">actuator_id</span><span class="p">,</span> <span class="n">actuator_mode</span><span class="p">,</span> <span class="n">when_occupied</span><span class="p">,</span> <span class="n">duration_minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_trigger_attempts</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">above_query</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">above</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">below_query</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">below</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">notifications</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sensor</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor</span><span class="p">)</span>
+        <span class="c1">#self.query = query.format(*(sensor.split(&quot;,&quot;)))</span>
+        <span class="c1">#self.tquery = &quot;SELECT MEAN(value) FROM \&quot;�F\&quot; WHERE \&quot;entity_id\&quot;=&#39;{}_temperature&#39; and time &gt; now() - 2m&quot;.format(*(sensor.split(&quot;,&quot;))) # temperature query</span>
+        <span class="c1">#self.hquery = &quot;SELECT MEAN(value) FROM \&quot;%\&quot; WHERE \&quot;entity_id\&quot;=&#39;{}_humidity&#39; and time &gt; now() - 2m&quot;.format(*(sensor.split(&quot;,&quot;))) # humidity query</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_id</span> <span class="o">=</span> <span class="n">actuator_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuator_mode</span> <span class="o">=</span> <span class="n">actuator_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">when_occupied</span> <span class="o">=</span> <span class="n">when_occupied</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration_minute</span> <span class="o">=</span> <span class="n">duration_minute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_trigger_attempts</span> <span class="o">=</span> <span class="n">max_trigger_attempts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">active</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">above_query</span> <span class="o">=</span> <span class="n">above_query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">above</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">above</span><span class="p">)</span> <span class="k">if</span> <span class="n">above</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">below_query</span> <span class="o">=</span> <span class="n">below_query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">below</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">below</span><span class="p">)</span> <span class="k">if</span> <span class="n">below</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="c1">#self.notifications = Notify.create_notifications(notifications)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triggered</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="Rule.check"><a class="viewcode-back" href="../../../api/tess.common.html#tess.common.rule.Rule.check">[docs]</a>    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">when_occupied</span><span class="p">):</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">when_occupied</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trigger</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_trigger_attempts</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">triggered</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_trigger_attempts</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Rule has already been triggered before.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trigger: </span><span class="si">%s</span><span class="s2">, triggered: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">triggered</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triggered</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">trigger</span></div>
+
+    <span class="k">def</span> <span class="nf">_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">when_occupied</span><span class="p">):</span>
+
+        <span class="c1">#######################################################</span>
+        <span class="c1"># TURN OFF for experiment, the occupancy is not included </span>
+        <span class="c1">#condition = True</span>
+
+        <span class="c1"># TURN ON for experiment, the occupancy is included </span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">when_occupied</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># true, don&#39;t care</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">when_occupied</span> <span class="o">==</span> <span class="n">when_occupied</span><span class="p">:</span>
+                <span class="n">condition</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">condition</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1">#######################################################</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">above</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">above</span> <span class="o">&lt;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span> <span class="ow">and</span> <span class="n">condition</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">above</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">above</span> <span class="o">&lt;</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">condition</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span> <span class="ow">and</span> <span class="n">condition</span>
+
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Above and/or below must not be None.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Rule.create_rules"><a class="viewcode-back" href="../../../api/tess.common.html#tess.common.rule.Rule.create_rules">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">create_rules</span><span class="p">(</span><span class="n">rules</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Rule</span><span class="p">(</span><span class="o">**</span><span class="n">rule</span><span class="p">)</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span> <span class="k">if</span> <span class="n">rule</span><span class="p">[</span><span class="s1">&#39;active&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;Rule above=</span><span class="si">{}</span><span class="s1"> below=</span><span class="si">{}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">above</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;Rule above=</span><span class="si">{}</span><span class="s1"> below=</span><span class="si">{}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">above</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">below</span><span class="p">)</span></div>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kyeong T. Min.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
