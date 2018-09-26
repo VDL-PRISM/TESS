@@ -93,7 +93,7 @@ Update the ip for the target PRISMS gateway server
 10.0.0.9
 ```
 
-## 4.4 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
+### 4.4 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
 - Start a new terminal session on TESS-ansible directory. 
 - Enter the following command to the command terminal
 
