@@ -92,7 +92,7 @@ Update the ip for the target PRISMS gateway server
 ```bash
 ansible-playbook playbook.yaml -i inventory.ini
 ```
-[Output of TESS ansible-playbook deployment](ansible_deployment.md)
+[Example output of successful deployment using TESS ansible-playbook(ansible_deployment.md)
 
 
 ## 3. Set up Ecobee Thermostat Actuator for SmartAir
