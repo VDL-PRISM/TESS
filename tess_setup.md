@@ -61,63 +61,25 @@ tess_database:
 ```
 
 
-## 2.2 Change TESS Services for SmartAir
-### 2.2.1 TESS Controller Service
+## 2.2 Update Ansible deployment script for SmartAir 
 
-```bash
-[Unit]
-Description=TESS Controller 
-After=network.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/srv/pi/TESS
-ExecStartPre=source /srv/pi/TESS/bin/activate
-ExecStart=/srv/pi/TESS/bin/python main.py controller actuator_controller.conf tess/rules/thermostat/ecobee/configuration.yaml tess/automations/logging_controller.yaml > tess-controller.log 2>&1
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 2.2.2 TESS Monitor Service
-
-```bash
-[Unit]
-Description=TESS Monitor 
-After=network.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/srv/pi/TESS
-ExecStartPre=source /srv/pi/TESS/bin/activate
-ExecStart=/srv/pi/TESS/bin/python main.py actuator_monitor.conf tess/rules/thermostat/ecobee/configuration.yaml tess/automations/logging_monitor.yaml > tess-monitor.log 2>&1
-
-[Install]
-WantedBy=multi-user.target
-```
-
-
-## 2.3 Update Ansible deployment script for SmartAir 
-
-### 2.3.1 Change ecobee_controller.conf under templates directory
+### 2.2.1 Change ecobee_controller.conf under templates directory
 
 ```bash
 {"API_KEY": "{{ controller_api_key }}"}
 ```
 
-### 2.3.2 Change ecobee_controller.conf under templates directory
+### 2.2.2 Change ecobee_controller.conf under templates directory
 
 ```bash
 {"API_KEY": "{{ monitor_api_key }}"}
 ```
 
-## 2.4 Update Deployment Script
+## 2.3 Update Deployment Script
 The TESS-ansible is the central TESS deployment script and is a part of TESS source code. 
 The deployment script can be customized for various applications by updating the playbook.yaml.
 
-### 2.4.1 Update inventory.ini 
+### 2.3.1 Update inventory.ini 
 Update the ip for the target PRISMS gateway server 
 
 ```bash
@@ -125,13 +87,15 @@ Update the ip for the target PRISMS gateway server
 10.0.0.9
 ```
 
-## 2.4.2 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
+## 2.3.2 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
 - Start a new terminal session on TESS-ansible directory. 
 - Enter the following command to the command terminal
 
 ```bash
 ansible-playbook playbook.yaml -i inventory.ini
 ```
+[Output of TESS ansible-playbook deployment](ansible_deployment.md)
+
 
 ## 3. Set up Ecobee Thermostat Actuator for SmartAir
 
