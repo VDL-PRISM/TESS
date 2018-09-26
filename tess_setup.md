@@ -62,6 +62,8 @@ tess_database:
 
 
 ## 2.2 Update Ansible deployment script for SmartAir 
+The TESS-ansible is the central TESS deployment script and is a part of TESS source code. 
+The deployment script can be customized for various applications by updating the playbook.yaml.
 
 ### 2.2.1 Change ecobee_controller.conf under templates directory
 
@@ -75,11 +77,7 @@ tess_database:
 {"API_KEY": "{{ monitor_api_key }}"}
 ```
 
-## 2.3 Update Deployment Script
-The TESS-ansible is the central TESS deployment script and is a part of TESS source code. 
-The deployment script can be customized for various applications by updating the playbook.yaml.
-
-### 2.3.1 Update inventory.ini 
+### 2.2.3 Update inventory.ini 
 Update the ip for the target PRISMS gateway server 
 
 ```bash
@@ -87,7 +85,7 @@ Update the ip for the target PRISMS gateway server
 10.0.0.9
 ```
 
-## 2.3.2 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
+## 2.2.4 Run Ansible playbook script to deploy TESS and SmartAir to the PRISMS gateway
 - Start a new terminal session on TESS-ansible directory. 
 - Enter the following command to the command terminal
 
