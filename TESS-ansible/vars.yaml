@@ -6,13 +6,13 @@ pe_root: /home/pi
 pe_user: pi
 pe_group: pi
 pe_virtualenv_path: /srv/pi/venv
-pe_working_directory: /srv/pi/venv/TESS/tess
+pe_working_directory: /srv/pi/venv/TESS
 
 pe_execstartpre_controller: 'source {{ pe_virtualenv_path }}/bin/activate'
-pe_execstart_controller: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/prisms_ecobee_controller.py controller ecobee_controller.conf rules.yaml > prisms-ecobee-controller.log 2>&1'
+pe_execstart_controller: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/main.py controller ecobee_controller.conf {{ pe_working_directory }}/tess/rules/thermostat/ecobee/configuration.yaml {{ pe_working_directory }}/tess/automations/logging_controller.yaml > tess-controller.log 2>&1'
 
 pe_execstartpre_monitor: 'source {{ pe_virtualenv_path }}/bin/activate'
-pe_execstart_monitor: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/prisms_ecobee_controller.py monitor ecobee_monitor.conf rules.yaml > prisms-ecobee-monitor.log 2>&1'
+pe_execstart_monitor: '{{ pe_virtualenv_path }}/bin/python {{ pe_working_directory }}/main.py monitor ecobee_monitor.conf {{ pe_working_directory }}/tess/rules/thermostat/ecobee/configuration.yaml {{ pe_working_directory }}/tess/automations/logging_monitor.yaml > tess-monitor.log 2>&1'
 
 
 # ecobee configuration file variables

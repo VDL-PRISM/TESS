@@ -70,6 +70,31 @@
     tags:
       - setup
 
+  - name: Create .ssh directory
+    file:
+      path: /home/pi/.ssh
+      state: directory
+    tags:
+      - ssh
+
+  - name: Create the SSH public key file for TESS Ecobee Controller
+    copy:
+      src: ~/.ssh/ecobee_rsa.pub
+      dest: /home/pi/.ssh/ecobee_rsa.pub
+      owner: pi
+      mode: 0644
+    tags:
+      - ssh
+
+  - name: Create the SSH private key file for TESS Ecobee Controller
+    copy:
+      src: ~/.ssh/ecobee_rsa
+      dest: /home/pi/.ssh/ecobee_rsa
+      owner: pi
+      mode: 0600
+    tags:
+      - ssh
+
   - name: Install TESS Ecobee Controller code
     git:
       repo: 'https://github.com/VDL-PRISM/TESS.git'
